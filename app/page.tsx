@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 interface Avatars {
   legacy: string | null;
   enhanced: string | null;
-  rid: string | null;
-  username: string | null;
+  rid?: string | null;
+  username?: string | null;
 }
 
 export default function HomePage() {
@@ -16,19 +16,20 @@ export default function HomePage() {
   const [avatars, setAvatars] = useState<Avatars>({
     legacy: null,
     enhanced: null,
-    rid: null,
-    username: null,
   });
   const [status, setStatus] = useState("");
+  const [searched, setSearched] = useState(false);
 
   const handleSearch = async () => {
     if (!input) return;
     setStatus("🔎 Searching...");
+    setSearched(false);
 
     try {
       const res = await fetch(`/api/rockstar?player=${input}`);
       const data: Avatars = await res.json();
       setAvatars(data);
+      setSearched(true);
 
       if (!data.legacy && !data.enhanced) {
         setStatus("❌ No avatars found");
@@ -37,6 +38,7 @@ export default function HomePage() {
       }
     } catch {
       setStatus("❌ Failed to fetch");
+      setSearched(false);
     }
   };
 
@@ -47,9 +49,7 @@ export default function HomePage() {
         <h1 className="text-4xl font-extrabold text-white drop-shadow-lg">
           GTA 5 Online Player Avatar Lookup
         </h1>
-        <p className="text-gray-300 mt-2 font-bold">
-          Legacy & Enhanced Edition
-        </p>
+        <p className="text-gray-300 mt-2 font-bold">Legacy & Enhanced Edition</p>
       </div>
 
       {/* Input */}
@@ -103,11 +103,13 @@ export default function HomePage() {
       </div>
 
       {/* RID/Username */}
-      {(avatars.rid || avatars.username) && (
+      {searched && (
         <p className="mt-4 text-sm text-gray-400">
-          {/^\d+$/.test(input)
-            ? `Username: ${avatars.username || "Unknown"}`
-            : `RID: ${avatars.rid || "Unknown"}`}
+          {
+            /^\d+$/.test(input)
+              ? "Username: " + (avatars.username || "Unknown")
+              : "RID: " + (avatars.rid || "Unknown")
+          }
         </p>
       )}
 
@@ -127,7 +129,7 @@ export default function HomePage() {
             Mister9982
           </a>
         </p>
-        <p>Data sourced from Rockstar's official services.</p>
+        <p>Data sourced from Rockstar&apos;s official services.</p>
       </footer>
     </main>
   );
