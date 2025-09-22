@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GTA Online Avatars Lookup
 
-## Getting Started
+<img width="2559" height="1244" alt="Project" src="https://github.com/user-attachments/assets/61d79cc8-deec-4766-a869-add7d8351b9c" />
 
-First, run the development server:
+- A simple **Next.js 15** web app to fetch and display GTA 5 Online player avatars (Legacy & Enhanced editions) along with player information like **RID** and **Username**.  
+
+- This app uses **Rockstar's SC Cache API** to fetch avatars and player details.
+
+---
+
+## 🚀 Features
+
+- Fetch **Legacy & Enhanced avatars** for any player.
+- Search by **Username** or **RID**.
+- Auto-detect input type (RID or Username) and display the corresponding info.
+- Display RID or Username depending on the input.
+- Responsive and clean UI built with **TailwindCSS**.
+- Client-side interactivity handled with React hooks.
+- Server-side logic for fetching data separated in API routes.
+- Clean footer with GitHub link.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Next.js 15** (App Router, Turbopack)
+- **TypeScript** for type safety
+- **React** for UI interactivity
+- **TailwindCSS** for styling
+- **@heroui/image** for optimized image rendering
+- **Rockstar SC Cache API** for player data
+
+---
+
+## 📁 Project Structure
+
+/app
+├─ page.tsx # Main homepage component (client)
+├─ api
+│ └─ lib
+│ └─ rockstar.ts # Server-side fetching logic
+├─ api
+│ └─ route.ts # API route for fetching avatars
+/components
+├─ ui # Reusable UI components (Button, Input)
+
+---
+
+## ⚡ Getting Started
+
+1. **Clone the repository**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/99Anvar99/GTA-Online-Avatars.git
+cd GTA-Online-Avatars
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Run locally
 
-## Learn More
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+Open **http://localhost:3000** to view the app.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔍 Usage
 
-## Deploy on Vercel
+- Enter a Username or RID in the search box.
+- Click Search.
+- View Legacy and Enhanced avatars.
+- RID/Username will be displayed below the avatars.
+- Status messages indicate success or failure.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🖼️ Avatar URLs/API
+
+Legacy Avatar:
+https://prod.cloud.rockstargames.com/members/sc/6266/{RID}/publish/gta5/mpchars/0.png
+
+Enhanced Avatar:
+https://prod.cloud.rockstargames.com/members/sc/0807/{RID}/publish/gta5/mpchars/0_pcrosalt.png
+
+---
+
+## 💡 Notes
+
+- If a player does not have avatars, a placeholder box with "No Avatar" is shown.
+- Server-side logic ensures that searching by Username automatically resolves the RID, and vice versa.
+- Uses TypeScript casting to safely handle Rockstar SC Cache API responses.
+
+---
+
+## 🔗 Links
+
+[![GitHub](https://img.shields.io/badge/GitHub-99Anvar99-blue?logo=github&logoColor=white)](https://github.com/99Anvar99/GTA-Online-Avatars)
+
+## ❤️ Credits
+
+- Made with React, Next.js, and TailwindCSS by **[Mister9982](https://github.com/99Anvar99)**
