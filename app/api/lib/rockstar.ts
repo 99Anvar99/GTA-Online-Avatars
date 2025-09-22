@@ -1,43 +1,65 @@
-// app/api/lib/rockstar.ts
 import fetch from "node-fetch";
 
 interface Avatars {
   legacy: string | null;
   enhanced: string | null;
   rid: string | null;
+  username: string | null;
 }
 
-/**
- * Fetch avatars (Legacy & Enhanced) and RID for a given player (username or RID)
- */
 export async function fetchAvatars(player: string): Promise<Avatars> {
   let rid: string | null = null;
+  let username: string | null = null;
 
-  // Auto-detect: if player is all numbers, treat as RID
+  // Case 1: input is RID (numbers only)
   if (/^\d+$/.test(player)) {
     rid = player;
-  } else {
-    // Fetch RID from username
+
     try {
-      const resp = await fetch(`https://sc-cache.com/n/${player}`);
+      const resp = await fetch(`https://sc-cache.com/r/${rid}`);
       if (resp.ok) {
         const data = await resp.json();
-        rid = data?.id?.toString() || null;
+
+        if (Array.isArray(data) && data.length > 0) {
+          username =
+            data[0]?.name || data[0]?.username || data[0]?.nickname || null;
+        } else {
+          username = data?.name || data?.username || data?.nickname || null;
+        }
       }
     } catch (err) {
-      console.error("Failed to fetch RID from username:", err);
+      console.error("Failed to fetch Username from RID:", err);
+    }
+  } else {
+    // Case 2: input is username
+    username = player;
+
+    try {
+      const resp = await fetch(`https://sc-cache.com/n/${username}`);
+      if (resp.ok) {
+        const data = await resp.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          rid = data[0]?.id?.toString() || null;
+          if (!username) username = data[0]?.name || null;
+        } else {
+          rid = data?.id?.toString() || null;
+          if (!username) username = data?.name || null;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch RID from Username:", err);
     }
   }
 
   if (!rid) {
-    return { legacy: null, enhanced: null, rid: null };
+    return { legacy: null, enhanced: null, rid: null, username };
   }
 
   // Construct avatar URLs
   const legacyUrl = `https://prod.cloud.rockstargames.com/members/sc/6266/${rid}/publish/gta5/mpchars/0.png`;
   const enhancedUrl = `https://prod.cloud.rockstargames.com/members/sc/0807/${rid}/publish/gta5/mpchars/0_pcrosalt.png`;
 
-  // Helper to check if image exists
   const checkImage = async (url: string): Promise<string | null> => {
     try {
       const resp = await fetch(url, { method: "HEAD" });
@@ -52,5 +74,5 @@ export async function fetchAvatars(player: string): Promise<Avatars> {
     checkImage(enhancedUrl),
   ]);
 
-  return { legacy, enhanced, rid };
+  return { legacy, enhanced, rid, username };
 }

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 interface Avatars {
   legacy: string | null;
   enhanced: string | null;
-  rid?: string | null;
+  rid: string | null;
+  username: string | null;
 }
 
 export default function HomePage() {
@@ -15,6 +16,8 @@ export default function HomePage() {
   const [avatars, setAvatars] = useState<Avatars>({
     legacy: null,
     enhanced: null,
+    rid: null,
+    username: null,
   });
   const [status, setStatus] = useState("");
 
@@ -23,7 +26,6 @@ export default function HomePage() {
     setStatus("🔎 Searching...");
 
     try {
-      // Call server API that returns both avatars + RID
       const res = await fetch(`/api/rockstar?player=${input}`);
       const data: Avatars = await res.json();
       setAvatars(data);
@@ -43,7 +45,7 @@ export default function HomePage() {
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-lg">
-          GTA 5 Online Player Lookup
+          GTA 5 Online Player Avatar Lookup
         </h1>
         <p className="text-gray-300 mt-2 font-bold">
           Legacy & Enhanced Edition
@@ -100,9 +102,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* RID */}
-      {avatars.rid && (
-        <p className="mt-4 text-sm text-gray-400">RID: {avatars.rid}</p>
+      {/* RID/Username */}
+      {(avatars.rid || avatars.username) && (
+        <p className="mt-4 text-sm text-gray-400">
+          {/^\d+$/.test(input)
+            ? `Username: ${avatars.username || "Unknown"}`
+            : `RID: ${avatars.rid || "Unknown"}`}
+        </p>
       )}
 
       {/* Status */}
