@@ -3,19 +3,15 @@ import React, { useState } from "react";
 import { Image } from "@heroui/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-interface Avatars {
-  legacy: string | null;
-  enhanced: string | null;
-  rid?: string | null;
-  username?: string | null;
-}
+import type { Avatars } from "./api/lib/rockstar";
 
 export default function HomePage() {
   const [input, setInput] = useState("");
   const [avatars, setAvatars] = useState<Avatars>({
     legacy: null,
     enhanced: null,
+    rid: null,
+    username: null,
   });
   const [status, setStatus] = useState("");
   const [searched, setSearched] = useState(false);
@@ -30,11 +26,8 @@ export default function HomePage() {
       const data: Avatars = await res.json();
       setAvatars(data);
 
-      if (!data.legacy && !data.enhanced) {
-        setStatus("❌ No avatars found");
-      } else {
-        setStatus("✅ Avatars loaded");
-      }
+      if (!data.legacy && !data.enhanced) setStatus("❌ No avatars found");
+      else setStatus("✅ Avatars loaded");
     } catch {
       setStatus("❌ Failed to fetch");
     }
@@ -47,9 +40,7 @@ export default function HomePage() {
         <h1 className="text-4xl font-extrabold text-white drop-shadow-lg">
           GTA 5 Online Player Avatar Lookup
         </h1>
-        <p className="text-gray-300 mt-2 font-bold">
-          Legacy & Enhanced Edition
-        </p>
+        <p className="text-gray-300 mt-2 font-bold">Legacy & Enhanced Edition</p>
       </div>
 
       {/* Input */}
@@ -67,7 +58,6 @@ export default function HomePage() {
 
       {/* Avatars */}
       <div className="flex gap-6 mt-8">
-        {/* Legacy */}
         <div className="flex flex-col items-center">
           <p className="text-sm font-semibold text-gray-400 mb-2">Legacy</p>
           {avatars.legacy ? (
@@ -83,7 +73,6 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Enhanced */}
         <div className="flex flex-col items-center">
           <p className="text-sm font-semibold text-gray-400 mb-2">
             Enhanced Edition
@@ -105,7 +94,7 @@ export default function HomePage() {
       {/* RID/Username */}
       {searched && (
         <p className="mt-4 text-sm text-gray-400">
-          {/^\d+$/.test(input)
+          {avatars.rid && /^\d+$/.test(input)
             ? `Username: ${avatars.username || "Unknown"}`
             : `RID: ${avatars.rid || "Unknown"}`}
         </p>
