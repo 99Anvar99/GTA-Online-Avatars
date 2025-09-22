@@ -34,6 +34,7 @@
 
 ## 📁 Project Structure
 
+```bash
 /app
 ├─ page.tsx # Main homepage component (client)
 ├─ api
@@ -43,6 +44,7 @@
 │ └─ route.ts # API route for fetching avatars
 /components
 ├─ ui # Reusable UI components (Button, Input)
+```
 
 ---
 
