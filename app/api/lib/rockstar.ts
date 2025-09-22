@@ -7,6 +7,13 @@ export interface Avatars {
   username: string | null;
 }
 
+interface SCUser {
+  id?: number | string;
+  name?: string;
+  username?: string;
+  nickname?: string;
+}
+
 export async function fetchAvatars(player: string): Promise<Avatars> {
   let rid: string | null = null;
   let username: string | null = null;
@@ -17,11 +24,10 @@ export async function fetchAvatars(player: string): Promise<Avatars> {
     try {
       const resp = await fetch(`https://sc-cache.com/r/${rid}`);
       if (resp.ok) {
-        const data = await resp.json();
-        username =
-          Array.isArray(data) && data.length > 0
-            ? data[0]?.name || data[0]?.username || data[0]?.nickname || null
-            : data?.name || data?.username || data?.nickname || null;
+        const data: SCUser | SCUser[] = await resp.json();
+        username = Array.isArray(data) && data.length > 0
+          ? data[0].name || data[0].username || data[0].nickname || null
+          : (data as SCUser).name || (data as SCUser).username || (data as SCUser).nickname || null;
       }
     } catch (err) {
       console.error("Failed to fetch Username from RID:", err);
@@ -32,11 +38,10 @@ export async function fetchAvatars(player: string): Promise<Avatars> {
     try {
       const resp = await fetch(`https://sc-cache.com/n/${username}`);
       if (resp.ok) {
-        const data = await resp.json();
-        rid =
-          Array.isArray(data) && data.length > 0
-            ? data[0]?.id?.toString() || null
-            : data?.id?.toString() || null;
+        const data: SCUser | SCUser[] = await resp.json();
+        rid = Array.isArray(data) && data.length > 0
+          ? data[0].id?.toString() || null
+          : (data as SCUser).id?.toString() || null;
       }
     } catch (err) {
       console.error("Failed to fetch RID from Username:", err);
