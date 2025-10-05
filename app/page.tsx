@@ -4,7 +4,6 @@ import { Image } from "@heroui/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
-
 import type { Avatars } from "./api/lib/rockstar";
 
 interface RecentSearch {
@@ -15,24 +14,24 @@ interface RecentSearch {
 export default function HomePage() {
   const [input, setInput] = useState("");
   const [avatars, setAvatars] = useState<Avatars>({
-    legacy: null,
-    enhanced: null,
+    legacy: { primary: null, secondary: null },
+    enhanced: { primary: null, secondary: null },
     rid: null,
     username: null,
   });
   const [status, setStatus] = useState("");
   const [searched, setSearched] = useState(false);
   const [recent, setRecent] = useState<RecentSearch[]>([]);
+  const [showSecondLegacy, setShowSecondLegacy] = useState(false);
+  const [showSecondEnhanced, setShowSecondEnhanced] = useState(false);
 
-  // Load recent searches from localStorage on mount
+  // Load recent searches
   useEffect(() => {
     const saved = localStorage.getItem("recentSearches");
-    if (saved) {
-      setRecent(JSON.parse(saved));
-    }
+    if (saved) setRecent(JSON.parse(saved));
   }, []);
 
-  // Save to localStorage whenever recent changes
+  // Save recent searches
   useEffect(() => {
     localStorage.setItem("recentSearches", JSON.stringify(recent));
   }, [recent]);
@@ -50,13 +49,12 @@ export default function HomePage() {
       const data: Avatars = await res.json();
       setAvatars(data);
 
-      if (!data.legacy && !data.enhanced) {
+      if (!data.legacy?.primary && !data.enhanced?.primary) {
         setStatus("❌ No avatars found");
       } else {
         setStatus("✅ Avatars loaded");
       }
 
-      // Update recent searches (max 10, unique by term)
       setRecent((prev) => {
         const updated = [
           { term: searchTerm, avatars: data },
@@ -71,6 +69,47 @@ export default function HomePage() {
 
   const removeSearch = (termToRemove: string) => {
     setRecent((prev) => prev.filter((r) => r.term !== termToRemove));
+  };
+
+  const renderEdition = (
+    edition: "legacy" | "enhanced",
+    label: string,
+    borderColor: string,
+    showSecond: boolean,
+    setShowSecond: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    const data = avatars[edition];
+    const hasSecond = Boolean(data?.secondary);
+
+    return (
+      <div className="flex flex-col items-center">
+        <p className="text-sm font-semibold text-gray-400 mb-2">{label}</p>
+
+        {data?.primary ? (
+          <Image
+            src={showSecond && hasSecond ? data.secondary! : data.primary}
+            alt={`${label} Avatar`}
+            className={`w-32 h-32 border-2 ${borderColor} rounded-lg object-cover`}
+          />
+        ) : (
+          <div className="w-32 h-32 bg-gray-800/80 rounded-lg flex flex-col items-center justify-center text-gray-400 text-center text-xs border border-gray-700">
+            <span className="opacity-75">No {label}</span>
+            <span className="opacity-50">Avatar</span>
+          </div>
+        )}
+
+        {hasSecond && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 text-xs text-gray-400 hover:text-white"
+            onClick={() => setShowSecond(!showSecond)}
+          >
+            {showSecond ? "👤 Show Character 1" : "👥 Show Character 2"}
+          </Button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -99,43 +138,26 @@ export default function HomePage() {
       </div>
 
       {/* Avatars */}
-      <div className="flex gap-6 mt-8">
-        <div className="flex flex-col items-center">
-          <p className="text-sm font-semibold text-gray-400 mb-2">Legacy</p>
-          {avatars.legacy ? (
-            <Image
-              src={avatars.legacy}
-              alt="Legacy Avatar"
-              className="w-32 h-32 border-2 border-blue-600 rounded-lg"
-            />
-          ) : (
-            <div className="w-32 h-32 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 text-xs">
-              No Legacy Avatar
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col items-center">
-          <p className="text-sm font-semibold text-gray-400 mb-2">
-            Enhanced Edition
-          </p>
-          {avatars.enhanced ? (
-            <Image
-              src={avatars.enhanced}
-              alt="Enhanced Avatar"
-              className="w-32 h-32 border-2 border-green-600 rounded-lg"
-            />
-          ) : (
-            <div className="w-32 h-32 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 text-xs">
-              No Enhanced Avatar
-            </div>
-          )}
-        </div>
+      <div className="flex gap-8 mt-10 flex-wrap justify-center">
+        {renderEdition(
+          "legacy",
+          "Legacy Edition",
+          "border-blue-600",
+          showSecondLegacy,
+          setShowSecondLegacy
+        )}
+        {renderEdition(
+          "enhanced",
+          "Enhanced Edition",
+          "border-green-600",
+          showSecondEnhanced,
+          setShowSecondEnhanced
+        )}
       </div>
 
-      {/* RID/Username */}
+      {/* RID / Username */}
       {searched && (
-        <p className="mt-4 text-sm text-gray-400">
+        <p className="mt-4 text-sm text-gray-400 text-center">
           {avatars.rid && /^\d+$/.test(input)
             ? `Username: ${avatars.username || "Unknown"}`
             : `RID: ${avatars.rid || "Unknown"}`}
@@ -156,7 +178,7 @@ export default function HomePage() {
               </span>
             </h2>
 
-            {/* Desktop (vertical list) */}
+            {/* Desktop list */}
             <ul className="hidden lg:flex lg:flex-col lg:space-y-3">
               {recent.map((r) => (
                 <li key={r.term} className="flex items-center justify-between">
@@ -165,9 +187,9 @@ export default function HomePage() {
                     className="flex items-center gap-3 w-full text-left bg-gray-800/70 hover:bg-gray-700 hover:scale-[1.02] transition rounded-xl p-2"
                   >
                     <div className="flex gap-1">
-                      {r.avatars.legacy ? (
+                      {r.avatars.legacy?.primary ? (
                         <Image
-                          src={r.avatars.legacy}
+                          src={r.avatars.legacy.primary}
                           alt="Legacy"
                           className="w-10 h-10 rounded-lg border border-blue-600 object-cover"
                         />
@@ -176,9 +198,9 @@ export default function HomePage() {
                           N/A
                         </div>
                       )}
-                      {r.avatars.enhanced ? (
+                      {r.avatars.enhanced?.primary ? (
                         <Image
-                          src={r.avatars.enhanced}
+                          src={r.avatars.enhanced.primary}
                           alt="Enhanced"
                           className="w-10 h-10 rounded-lg border border-green-600 object-cover"
                         />
@@ -197,10 +219,9 @@ export default function HomePage() {
                       </p>
                     </div>
                   </button>
-                  {/* Trash icon */}
                   <button
                     onClick={() => removeSearch(r.term)}
-                    className="ml-2 p-1  text-gray-400 hover:text-red-500 transition"
+                    className="ml-2 p-1 text-gray-400 hover:text-red-500 transition"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -208,7 +229,7 @@ export default function HomePage() {
               ))}
             </ul>
 
-            {/* Mobile (horizontal scroll) */}
+            {/* Mobile horizontal scroll */}
             <div className="flex lg:hidden overflow-x-auto gap-3">
               {recent.map((r) => (
                 <div key={r.term} className="relative flex-shrink-0">
@@ -217,9 +238,9 @@ export default function HomePage() {
                     className="bg-gray-800/70 hover:bg-gray-700 rounded-xl p-2 flex flex-col items-center w-28"
                   >
                     <div className="flex gap-1 mb-2">
-                      {r.avatars.legacy ? (
+                      {r.avatars.legacy?.primary ? (
                         <Image
-                          src={r.avatars.legacy}
+                          src={r.avatars.legacy.primary}
                           alt="Legacy"
                           className="w-10 h-10 rounded-lg border border-blue-600 object-cover"
                         />
@@ -228,9 +249,9 @@ export default function HomePage() {
                           N/A
                         </div>
                       )}
-                      {r.avatars.enhanced ? (
+                      {r.avatars.enhanced?.primary ? (
                         <Image
-                          src={r.avatars.enhanced}
+                          src={r.avatars.enhanced.primary}
                           alt="Enhanced"
                           className="w-10 h-10 rounded-lg border border-green-600 object-cover"
                         />
@@ -248,7 +269,6 @@ export default function HomePage() {
                     </p>
                   </button>
 
-                  {/* Trash icon for mobile */}
                   <button
                     onClick={() => removeSearch(r.term)}
                     className="absolute top-1 right-1 p-1 text-gray-400 hover:text-red-500 transition rounded-full bg-gray-900/50"

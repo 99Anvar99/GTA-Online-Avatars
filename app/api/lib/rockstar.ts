@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 
 export interface Avatars {
-  legacy: string | null;
-  enhanced: string | null;
+  legacy: { primary: string | null; secondary: string | null };
+  enhanced: { primary: string | null; secondary: string | null };
   rid: string | null;
   username: string | null;
 }
@@ -20,53 +20,64 @@ export async function fetchAvatars(player: string): Promise<Avatars> {
 
   if (/^\d+$/.test(player)) {
     rid = player;
-
-    try {
-      const resp = await fetch(`https://sc-cache.com/r/${rid}`);
-      if (resp.ok) {
-        const rawData = (await resp.json()) as SCUser | SCUser[];
-        const data = Array.isArray(rawData) ? rawData[0] : rawData;
-        username = data.name || data.username || data.nickname || null;
-      }
-    } catch (err) {
-      console.error("Failed to fetch Username from RID:", err);
+    const resp = await fetch(`https://sc-cache.com/r/${rid}`);
+    if (resp.ok) {
+      const raw = (await resp.json()) as SCUser | SCUser[];
+      const data = Array.isArray(raw) ? raw[0] : raw;
+      username = data?.name || data?.username || data?.nickname || null;
     }
   } else {
     username = player;
-
-    try {
-      const resp = await fetch(`https://sc-cache.com/n/${username}`);
-      if (resp.ok) {
-        const rawData = (await resp.json()) as SCUser | SCUser[];
-        const data = Array.isArray(rawData) ? rawData[0] : rawData;
-        rid = data.id?.toString() || null;
-        if (!username) username = data.name || data.username || data.nickname || null;
-      }
-    } catch (err) {
-      console.error("Failed to fetch RID from Username:", err);
+    const resp = await fetch(`https://sc-cache.com/n/${username}`);
+    if (resp.ok) {
+      const raw = (await resp.json()) as SCUser | SCUser[];
+      const data = Array.isArray(raw) ? raw[0] : raw;
+      rid = data?.id?.toString() || null;
+      if (!username)
+        username = data?.name || data?.username || data?.nickname || null;
     }
   }
 
   if (!rid) {
-    return { legacy: null, enhanced: null, rid: null, username };
+    return {
+      legacy: { primary: null, secondary: null },
+      enhanced: { primary: null, secondary: null },
+      rid: null,
+      username,
+    };
   }
 
-  const legacyUrl = `https://prod.cloud.rockstargames.com/members/sc/6266/${rid}/publish/gta5/mpchars/0.png`;
-  const enhancedUrl = `https://prod.cloud.rockstargames.com/members/sc/0807/${rid}/publish/gta5/mpchars/0_pcrosalt.png`;
+  const urls = {
+    legacy: [
+      `https://prod.cloud.rockstargames.com/members/sc/6266/${rid}/publish/gta5/mpchars/0.png`,
+      `https://prod.cloud.rockstargames.com/members/sc/6266/${rid}/publish/gta5/mpchars/1.png`,
+    ],
+    enhanced: [
+      `https://prod.cloud.rockstargames.com/members/sc/0807/${rid}/publish/gta5/mpchars/0_pcrosalt.png`,
+      `https://prod.cloud.rockstargames.com/members/sc/0807/${rid}/publish/gta5/mpchars/1_pcrosalt.png`,
+    ],
+  };
 
-  const checkImage = async (url: string): Promise<string | null> => {
+  const checkImage = async (url: string) => {
     try {
-      const resp = await fetch(url, { method: "HEAD" });
-      return resp.ok ? url : null;
+      const res = await fetch(url, { method: "HEAD" });
+      return res.ok ? url : null;
     } catch {
       return null;
     }
   };
 
-  const [legacy, enhanced] = await Promise.all([
-    checkImage(legacyUrl),
-    checkImage(enhancedUrl),
+  const [legacy0, legacy1, enhanced0, enhanced1] = await Promise.all([
+    checkImage(urls.legacy[0]),
+    checkImage(urls.legacy[1]),
+    checkImage(urls.enhanced[0]),
+    checkImage(urls.enhanced[1]),
   ]);
 
-  return { legacy, enhanced, rid, username };
+  return {
+    legacy: { primary: legacy0 || legacy1, secondary: legacy1 || null },
+    enhanced: { primary: enhanced0 || enhanced1, secondary: enhanced1 || null },
+    rid,
+    username,
+  };
 }
