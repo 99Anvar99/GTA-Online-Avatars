@@ -27,7 +27,7 @@
 - **TypeScript** for type safety
 - **React** for UI interactivity
 - **TailwindCSS** for styling
-- **@heroui/image** for optimized image rendering
+- **Native browser images** for CDN avatars and lazy-loaded recent-search thumbnails
 - **Rockstar SC Cache API** for player data
 
 ---
@@ -36,14 +36,13 @@
 
 ```bash
 /app
-├─ page.tsx # Main homepage component (client)
-├─ api
-│ └─ lib
-│ └─ rockstar.ts # Server-side fetching logic
-├─ api
-│ └─ route.ts # API route for fetching avatars
+├─ page.tsx # Homepage layout
+└─ api
+   ├─ lib/rockstar.ts # Rockstar profile and avatar lookups
+   └─ rockstar/route.ts # Avatar API route
 /components
-├─ ui # Reusable UI components (Button, Input)
+├─ avatar-search.tsx # Search form, avatar results, and recent searches
+└─ ui # Reusable UI components (Button, Input)
 ```
 
 ---
@@ -76,8 +75,9 @@ Open **http://localhost:3000** to view the app.
 ## 🔍 Usage
 
 - Enter a Username or RID in the search box.
-- Click Search.
+- Press Enter or click Search.
 - View Legacy and Enhanced avatars.
+- Toggle between characters when both slots are available.
 - RID/Username will be displayed below the avatars.
 - Status messages indicate success or failure.
 
@@ -97,7 +97,7 @@ https://prod.cloud.rockstargames.com/members/sc/0807/{RID}/publish/gta5/mpchars/
 
 - If a player does not have avatars, a placeholder box with "No Avatar" is shown.
 - Server-side logic ensures that searching by Username automatically resolves the RID, and vice versa.
-- Uses TypeScript casting to safely handle Rockstar SC Cache API responses.
+- Your browser keeps up to ten recent searches and can reuse lookup responses for up to 60 seconds.
 
 ---
 
